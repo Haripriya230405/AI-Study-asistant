@@ -1,0 +1,162 @@
+!pip install -q "transformers==4.40.0" torch sentencepiece
+print("✅ All dependencies installed!")
+from transformers import pipeline
+import textwrap
+import warnings
+warnings.filterwarnings('ignore')
+print("✅ Libraries imported successfully!")
+summarizer = pipeline(
+    "summarization",
+    model="facebook/bart-large-cnn"
+)
+print("✅ Summarization model loaded!")
+
+qa_model = pipeline(
+    "question-answering",
+    model="deepset/roberta-base-squad2"
+)
+print("✅ Q&A model loaded!")
+
+explainer = pipeline(
+    "text2text-generation",
+    model="google/flan-t5-base"
+)
+print("✅ Text generation model loaded!")
+
+# Text Generation Model
+generator = pipeline(
+    "text-generation",
+    model="gpt2"
+    )
+print("✅ Text generation model loaded!")
+
+print("\n🎉 All models ready!")
+
+study_text = """
+Artificial Intelligence (AI) is a branch of computer science
+that enables machines to mimic human intelligence.
+Machine Learning is a subset of AI that allows systems
+to learn from data without explicit programming.
+Deep Learning is a subset of Machine Learning that uses
+neural networks with multiple layers.
+AI is widely used in healthcare, finance,
+education, and autonomous vehicles.
+"""
+
+summary = summarizer(
+    study_text,
+    max_length=60,
+    min_length=20,
+    do_sample=False
+)
+
+print("Summary:")
+print(summary[0]['summary_text'])
+
+question = "What is Machine Learning?"
+
+answer = qa_model(
+    question=question,
+    context=study_text
+)
+
+print("Answer:")
+print(answer['answer'])
+
+question = "Where is AI used?"
+
+answer = qa_model(
+    question=question,
+    context=study_text
+)
+
+print(answer['answer'])
+
+prompt = """
+Explain Artificial Intelligence in simple terms:
+"""
+
+result =explainer(
+    prompt,
+    max_length=100,
+    num_return_sequences=1
+)
+
+print(result[0]['generated_text'])
+
+prompt = """
+Create short study notes about Machine Learning:
+"""
+
+notes = generator(
+    prompt,
+    max_length=150,
+    num_return_sequences=1
+)
+
+print(notes[0]['generated_text'])
+
+while True:
+
+    print("\n===== AI Study Assistant =====")
+    print("1. Summarize")
+    print("2. Ask Question")
+    print("3. Explain Topic")
+    print("4. Exit")
+
+    choice = input("Enter Choice: ")
+
+    if choice == "1":
+
+        result = summarizer(
+            study_text,
+            max_length=60,
+            min_length=20,
+            do_sample=False
+        )
+
+        print("\nSummary:")
+        print(result[0]['summary_text'])
+
+    elif choice == "2":
+
+        question = input("Ask a Question: ")
+
+        answer = qa_model(
+            question=question,
+            context=study_text
+        )
+
+        print("\nAnswer:")
+        print(answer['answer'])
+
+    elif choice == "3":
+
+        topic = input("Enter Topic: ")
+
+        prompt = f"Explain {topic} in simple terms:"
+
+        explanation = generator(
+            prompt,
+            max_length=150,
+            num_return_sequences=1
+        )
+
+        print(explanation[0]['generated_text'])
+
+    elif choice == "4":
+        break
+
+    else:
+        print("Invalid Choice")
+
+from google.colab import files
+
+uploaded = files.upload()
+
+file_name = list(uploaded.keys())[0]
+
+with open(file_name, "r", encoding="utf-8") as f:
+    study_text = f.read()
+
+print("Text Loaded Successfully")
